@@ -32,12 +32,28 @@ module CharlockHolmes
   # Dynamically retrieve the CharlockHolmes version from the library filenames
   def self.get_icu_version
     dir = Pathname.new(icu_dir)
-    lib_files = dir.glob("libicui18n{.,-}*.{so,dylib}")
-    raise "No CharlockHolmes library found in the specified directory" if lib_files.empty?
+    if FFI::Platform::IS_MAC
+      lib_files = dir.glob("libicui18n.*.dylib")
+      raise "No CharlockHolmes library found in the specified directory" if lib_files.empty?
 
-    # Extract the version number from the first matching file
-    version_string = lib_files.first.basename.to_s.match(/libicui18n\.(\d+)\./)[1]
-    version_string.to_i
+      # Extract the version number from the first matching file
+      highest_version = lib_files.first.basename.to_s.match(/libicui18n\.(\d+)\./)[1].to_i
+    elsif FFI::Platform::IS_LINUX
+
+      # Check for versioned library files
+      versioned_libs = dir.glob("libicui18n.so.*")
+
+      raise "No CharlockHolmes library found in the specified directory" if versioned_libs.empty?
+
+      # Find the highest version number
+      highest_version = versioned_libs.map do |lib|
+        lib.basename.to_s.match(/\d+/)[0].to_i
+      end.max
+
+    else
+      raise "un supported platform"
+    end
+    highest_version
   end
 
   CharlockHolmes_VERSION = get_icu_version

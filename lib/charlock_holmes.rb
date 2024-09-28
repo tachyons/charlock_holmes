@@ -18,9 +18,9 @@ module CharlockHolmes
     if ENV["CharlockHolmes_DIR"].nil?
       case RbConfig::CONFIG["host_os"]
       when /darwin/
-        ["/opt/homebrew/opt/icu4c/lib", "/usr/local/lib", "/usr/lib/x86_64-linux-gnu"].find { |path| Dir.exist?(path) }
+        ["/opt/homebrew/opt/icu4c/lib", "/usr/local/lib"].find { |path| Dir.exist?(path) }
       when /linux/
-        "/usr/local/lib" # Adjust if CharlockHolmes is installed elsewhere
+        ["/usr/local/lib", "/usr/lib/x86_64-linux-gnu"].find { |path| Dir.exist?(path) }
       else
         raise "CharlockHolmes installation directory not found for this operating system"
       end

@@ -32,7 +32,7 @@ module CharlockHolmes
   # Dynamically retrieve the CharlockHolmes version from the library filenames
   def self.get_icu_version
     dir = Pathname.new(icu_dir)
-    lib_files = dir.glob("libicui18n.*.dylib")
+    lib_files = dir.glob("libicui18n.*.{so,dylib}")
     raise "No CharlockHolmes library found in the specified directory" if lib_files.empty?
 
     # Extract the version number from the first matching file
@@ -43,8 +43,10 @@ module CharlockHolmes
   CharlockHolmes_VERSION = get_icu_version
 
   # Load both libicui18n and libicuuc
-  icu_lib_path_i18n = File.join(icu_dir, "libicui18n.#{CharlockHolmes_VERSION}.dylib")
-  icu_lib_path_uc = File.join(icu_dir, "libicuuc.#{CharlockHolmes_VERSION}.dylib")
+
+  icu_lib_path_i18n = FFI::LibraryPath.new("icui18n", abi_number: CharlockHolmes_VERSION, root: icu_dir)
+
+  icu_lib_path_uc = FFI::LibraryPath.new("icuuc", abi_number: CharlockHolmes_VERSION, root: icu_dir)
 
   ffi_lib(icu_lib_path_i18n, icu_lib_path_uc)
 

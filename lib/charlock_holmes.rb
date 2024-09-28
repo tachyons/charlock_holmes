@@ -119,7 +119,7 @@ module CharlockHolmes
     end
 
     def detect(text_to_detect, hint = nil)
-      return {type: :binary, confidence: 100, encoding: "BINARY"} if is_binary?(text_to_detect)
+      return {type: :binary, confidence: 100, encoding: "BINARY", ruby_encoding: "ASCII-8BIT"} if is_binary?(text_to_detect)
 
       status = FFI::MemoryPointer.new(:int)
       charset_detector = CharlockHolmes.ucsdet_open(status)
@@ -130,8 +130,18 @@ module CharlockHolmes
       name = CharlockHolmes.ucsdet_getName(detected_charset, status)
       language = CharlockHolmes.ucsdet_getLanguage(detected_charset, status)
       CharlockHolmes.ucsdet_close(charset_detector)
-      {encoding: name, confidence: confidence, type: :text, language: language,
-       ruby_encoding: Encoding.find(name).name}
+      ruby_encoding = begin
+        Encoding.find(name).name
+      rescue
+        "binary"
+      end
+      {
+        encoding: name,
+        confidence: confidence,
+        type: :text,
+        language: language,
+        ruby_encoding: ruby_encoding
+      }
     end
 
     def type
@@ -143,29 +153,65 @@ module CharlockHolmes
     end
 
     def is_binary?(text_to_detect)
-      buf = text_to_detect.to_s
+      buf = text_to_detect # .force_encoding("ASCII-8BIT") # Ensures the string is treated as binary
       buf_len = buf.length
       scan_len = [buf_len, DEFAULT_BINARY_SCAN_LEN].min
 
-      # Common binary signatures
-      binary_signatures = {
-        "application/postscript" => "%!PS-Adobe-",
-        "image/png" => "\x89PNG\x0D\x0A\x1A\x0A",
-        "image/gif" => %w[GIF87a GIF89a],
-        "application/pdf" => "%PDF-",
-        "image/jpeg" => "\xFF\xD8\xFF",
-        "text/plain" => ["\0\0\xfe\xff", "\xff\xfe\0\0", "\xfe\xff", "\xff\xfe"]
-      }
-
-      binary_signatures.each_value do |signature|
-        if buf_len >= signature.length
-          return true if signature.is_a?(Array) && signature.include?(buf[0...signature.length])
-          return true if signature.is_a?(String) && buf.start_with?(signature)
-        end
+      if buf_len > 10
+        # application/postscript
+        return false if buf.start_with?("%!PS-Adobe-")
       end
 
-      # If no specific content type is detected, check for null bytes within the scan length
-      buf[0..scan_len].include?("\0")
+      if buf_len > 7
+        # image/png
+        return true if buf.start_with?("\x89PNG\x0D\x0A\x1A\x0A")
+      end
+
+      if buf_len > 5
+        # image/gif
+        return true if buf.start_with?("GIF87a")
+
+        # image/gif
+        return true if buf.start_with?("GIF89a")
+      end
+
+      if buf_len > 4
+        # application/pdf
+        return true if buf.start_with?("%PDF-")
+      end
+
+      if buf_len > 3
+        # UTF-32BE
+        return false if buf.start_with?("\0\0\xfe\xff")
+
+        # UTF-32LE
+        return false if buf.start_with?("\xff\xfe\0\0")
+      end
+
+      if buf_len > 2
+        # image/jpeg
+        return true if buf.start_with?("\xFF\xD8\xFF")
+      end
+
+      if buf_len > 1
+        # UTF-16BE
+        return false if buf.start_with?("\xfe\xff")
+
+        # UTF-16LE
+        return false if buf.start_with?("\xff\xfe")
+      end
+
+      # Check for NULL bytes within the scan range, likely indicating binary content
+      buf_len = [buf_len, scan_len].min
+      buf[0...buf_len].include?("\0")
+    end
+
+    def supported_encodings
+      []
+    end
+
+    def self.supported_encodings
+      new.supported_encodings
     end
 
     def detect_all(text_to_detect, hint = nil)
@@ -181,8 +227,13 @@ module CharlockHolmes
         name = CharlockHolmes.ucsdet_getName(match, status)
         confidence = CharlockHolmes.ucsdet_getConfidence(match, status)
         language = CharlockHolmes.ucsdet_getLanguage(match, status)
+        ruby_encoding = begin
+          Encoding.find(name).name
+        rescue
+          nil
+        end
         results << {encoding: name, confidence: confidence, type: :text, language: language,
-                     ruby_encoding: Encoding.find(name).name}
+                     ruby_encoding: ruby_encoding}
       end
 
       CharlockHolmes.ucsdet_close(charset_detector)

@@ -47,7 +47,7 @@ module CharlockHolmes
 
       # Find the highest version number
       highest_version = versioned_libs.map do |lib|
-        lib.basename.to_s.match(/\d+/)[0].to_i
+        lib.basename.to_s.to_s.match(/\w+\.(\d+)/).captures[0]
       end.max
 
     else

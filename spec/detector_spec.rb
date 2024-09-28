@@ -144,6 +144,8 @@ RSpec.describe CharlockHolmes::EncodingDetector do
   end
 
   describe "detection works as expected" do
+    # FIXME some of the specs had to commented because of the null bytes issue in FFI
+    # https://github.com/ffi/ffi/issues/1081
     maping = [
       ["repl2.cljs", "ISO-8859-1", :text],
       ["cl-messagepack.lisp", "ISO-8859-1", :text],

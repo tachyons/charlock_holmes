@@ -32,7 +32,7 @@ module CharlockHolmes
   # Dynamically retrieve the CharlockHolmes version from the library filenames
   def self.get_icu_version
     dir = Pathname.new(icu_dir)
-    lib_files = dir.glob("libicui18n.*.{so,dylib}")
+    lib_files = dir.glob("libicui18n{.,-}*.{so,dylib}")
     raise "No CharlockHolmes library found in the specified directory" if lib_files.empty?
 
     # Extract the version number from the first matching file

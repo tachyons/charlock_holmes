@@ -77,6 +77,7 @@ PLATFORMS
   arm64-darwin-22
   java
   ruby
+  universal-java-22
   x86_64-linux
 
 DEPENDENCIES

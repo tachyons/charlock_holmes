@@ -75,7 +75,8 @@ module CharlockHolmes
       status = FFI::MemoryPointer.new(:int)
       charset_detector = CharlockHolmes.ucsdet_open(status)
 
-      CharlockHolmes.ucsdet_setText(charset_detector, text_to_detect, text_to_detect.length, status)
+      text_pointer = FFI::MemoryPointer.from_string(text_to_detect)
+      CharlockHolmes.ucsdet_setText(charset_detector, text_pointer, text_to_detect.length, status)
       detected_charset = CharlockHolmes.ucsdet_detect(charset_detector, status)
       confidence = CharlockHolmes.ucsdet_getConfidence(detected_charset, status)
       name = CharlockHolmes.ucsdet_getName(detected_charset, status)
@@ -160,7 +161,9 @@ module CharlockHolmes
     def detect_all(text_to_detect, hint = nil)
       status = FFI::MemoryPointer.new(:int)
       charset_detector = CharlockHolmes.ucsdet_open(status)
-      CharlockHolmes.ucsdet_setText(charset_detector, text_to_detect, text_to_detect.length, status)
+
+      text_pointer = FFI::MemoryPointer.from_string(text_to_detect)
+      CharlockHolmes.ucsdet_setText(charset_detector, text_pointer, text_to_detect.length, status)
 
       matches_ptr = FFI::MemoryPointer.new(:pointer)
       matches = CharlockHolmes.ucsdet_detectAll(charset_detector, matches_ptr, status)

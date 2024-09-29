@@ -6,6 +6,7 @@ module CharlockHolmes
 
     def convert(text, source_encoding, target_encoding)
       raise TypeError if text.nil? || source_encoding.nil? || target_encoding.nil?
+      text = text.dup.force_encoding(Encoding::BINARY) # Ensures the string is treated as binary
 
       target_encoding = "UTF-16BE" if target_encoding == "UTF-16" # FIXME it seems that ruby 3.2+ defaults to Big endian
 
@@ -20,13 +21,14 @@ module CharlockHolmes
       target_length = source_length * 4 # Estimate target size
       target_buffer = FFI::MemoryPointer.new(:char, target_length)
 
+      text_pointer = FFI::MemoryPointer.from_string(text)
       # Convert the text
       converted_length = CharlockHolmes.ucnv_convert(
         target_encoding,
         source_encoding,
         target_buffer,
         target_length,
-        text.to_s,
+        text_pointer,
         source_length,
         status
       )

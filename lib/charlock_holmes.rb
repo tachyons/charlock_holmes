@@ -97,7 +97,7 @@ module CharlockHolmes
     :string,  # fromConverterName
     :pointer, # target
     :int32,   # targetCapacity
-    :string,  # source
+    :StringWithNullByte,  # source
     :int32,   # sourceLength
     :pointer  # pErrorCode
   ], :int32

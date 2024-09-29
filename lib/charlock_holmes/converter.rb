@@ -13,8 +13,8 @@ module CharlockHolmes
       source_conv = CharlockHolmes.ucnv_open(source_encoding, status)
       target_conv = CharlockHolmes.ucnv_open(target_encoding, status)
 
-      raise "Failed to open source converter" if source_conv.null?
-      raise "Failed to open target converter" if target_conv.null?
+      raise "Failed to open source converter #{source_encoding}" if source_conv.null?
+      raise "Failed to open target converter #{target_encoding}" if target_conv.null?
 
       source_length = text.bytesize
       target_length = source_length * 4 # Estimate target size

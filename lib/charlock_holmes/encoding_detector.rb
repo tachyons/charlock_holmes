@@ -65,8 +65,8 @@ module CharlockHolmes
 
     BINARY = "binary"
 
-    def initialize(limit = nil)
-      @limit = limit
+    def initialize(scan_len = DEFAULT_BINARY_SCAN_LEN)
+      @binary_scan_length = scan_len
     end
 
     def detect(text_to_detect, hint = nil)
@@ -104,9 +104,9 @@ module CharlockHolmes
     end
 
     def is_binary?(text_to_detect)
-      buf = text_to_detect # .force_encoding("ASCII-8BIT") # Ensures the string is treated as binary
+      buf = text_to_detect.force_encoding(Encoding::BINARY) # Ensures the string is treated as binary
       buf_len = buf.length
-      scan_len = [buf_len, DEFAULT_BINARY_SCAN_LEN].min
+      scan_len = [buf_len, binary_scan_length].min
 
       if buf_len > 10
         # application/postscript
@@ -115,7 +115,7 @@ module CharlockHolmes
 
       if buf_len > 7
         # image/png
-        return true if buf.start_with?("\x89PNG\x0D\x0A\x1A\x0A")
+        return true if buf.start_with?("\x89PNG\x0D\x0A\x1A\x0A".force_encoding(Encoding::BINARY))
       end
 
       if buf_len > 5
@@ -133,23 +133,23 @@ module CharlockHolmes
 
       if buf_len > 3
         # UTF-32BE
-        return false if buf.start_with?("\0\0\xfe\xff")
+        return false if buf.start_with?("\0\0\xfe\xff".force_encoding(Encoding::BINARY))
 
         # UTF-32LE
-        return false if buf.start_with?("\xff\xfe\0\0")
+        return false if buf.start_with?("\xff\xfe\0\0".force_encoding(Encoding::BINARY))
       end
 
       if buf_len > 2
         # image/jpeg
-        return true if buf.start_with?("\xFF\xD8\xFF")
+        return true if buf.start_with?("\xFF\xD8\xFF".force_encoding(Encoding::BINARY))
       end
 
       if buf_len > 1
         # UTF-16BE
-        return false if buf.start_with?("\xfe\xff")
+        return false if buf.start_with?("\xfe\xff".force_encoding(Encoding::BINARY))
 
         # UTF-16LE
-        return false if buf.start_with?("\xff\xfe")
+        return false if buf.start_with?("\xff\xfe".force_encoding(Encoding::BINARY))
       end
 
       # Check for NULL bytes within the scan range, likely indicating binary content

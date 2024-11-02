@@ -18,13 +18,20 @@ jobs:
         ruby: ['3.1', '3.2', '3.3',jruby, jruby-head, truffleruby, truffleruby-head]
     steps:
     - uses: actions/checkout@v4
+    
     - name: Install icu-devtools on Ubuntu
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: sudo apt-get update && sudo apt-get install -y icu-devtools
+      
+    - name: Install icu4c on MAcOs
+      if: ${{ matrix.os == 'macos-latest' }}
+      run: brew install icu4c
+      
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
+        
     - name: Run the test suit
       run: bundle exec rake

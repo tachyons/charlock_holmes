@@ -11,6 +11,7 @@ module CharlockHolmes
       target_encoding = "UTF-16BE" if target_encoding == "UTF-16" # FIXME it seems that ruby 3.2+ defaults to Big endian
 
       status = FFI::MemoryPointer.new(:int)
+      source_encoding = "ASCII" if source_encoding == "BINARY"
       source_conv = CharlockHolmes.ucnv_open(source_encoding, status)
       target_conv = CharlockHolmes.ucnv_open(target_encoding, status)
 

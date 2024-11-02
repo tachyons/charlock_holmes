@@ -21,6 +21,11 @@ RSpec.describe CharlockHolmes::EncodingDetector do
       detected = described_class.detect("test", "UTF-8")
       expect(detected[:encoding]).to eq("ISO-8859-1")
     end
+
+    it "accepts frozen string" do
+      detected = described_class.detect("test".freeze)
+      expect(detected[:encoding]).to eq("ISO-8859-1")
+    end
   end
 
   describe ".detect_all" do

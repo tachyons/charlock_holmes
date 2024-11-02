@@ -70,6 +70,8 @@ module CharlockHolmes
     end
 
     def detect(text_to_detect, hint = nil)
+      text_to_detect = text_to_detect.dup if text_to_detect.frozen?
+
       return {type: :binary, confidence: 100, encoding: "BINARY", ruby_encoding: "ASCII-8BIT"} if is_binary?(text_to_detect)
 
       status = FFI::MemoryPointer.new(:int)

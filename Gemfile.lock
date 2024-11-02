@@ -78,6 +78,7 @@ PLATFORMS
   java
   ruby
   universal-java-22
+  universal-java-23
   x86_64-linux
 
 DEPENDENCIES
